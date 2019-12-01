@@ -1,14 +1,16 @@
-total_fuel = 0
-with open("input.txt", "r") as f:
-    for line in f.readlines():
-        num = int(line)
-        total_fuel += (num // 3) - 2
-
-print(total_fuel)
+def solver(fuel_func):
+    total_fuel = 0
+    with open("input.txt", "r") as f:
+        for line in f.readlines():
+            total_fuel += fuel_func(int(line))
+    return total_fuel
 
 
 def calc_fuel(num):
     return (num // 3) - 2
+
+
+print(solver(calc_fuel))
 
 
 def recursive_fuel(num):
@@ -19,9 +21,4 @@ def recursive_fuel(num):
         return base + recursive_fuel(base)
 
 
-total_fuel = 0
-with open("input.txt", "r") as f:
-    for line in f.readlines():
-        num = int(line)
-        total_fuel += recursive_fuel(num)
-print(total_fuel)
+print(solver(recursive_fuel))
