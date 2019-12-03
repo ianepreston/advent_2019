@@ -3,7 +3,8 @@ import re
 
 def readpaths(filename):
     with open(filename, "r") as f:
-        return [line.split(",") for line in f.readlines()]
+        str_dirs = [line.split(",") for line in f.readlines()]
+        return [[delta(direction) for direction in dir] for dir in str_dirs]
 
 
 def delta(direction):
@@ -30,10 +31,11 @@ def line_seg(start_point, move):
     else:
         step = 1
     if dx != 0:
-        seg = [(x, ys) for x in range(xs, dx + step, step)]
+        seg = [(x, ys) for x in range(xs, xs + dx + step, step)]
     else:
-        seg = [(xs, y) for y in range(ys, dy + step, step)]
+        seg = [(xs, y) for y in range(ys, ys + dy + step, step)]
     return seg
+
 
 def fullseg(moves):
     xs = ys = 0
@@ -46,7 +48,19 @@ def fullseg(moves):
     points.remove((0, 0))
     return points
 
+
 def intersections(points1, points2):
     return points1.intersection(points2)
 
-def part1
+
+def part1(filename):
+    l1, l2 = [fullseg(moves) for moves in readpaths(filename)]
+    candidates = intersections(l1, l2)
+    dists = [manhattan_dist((0, 0), p) for p in candidates]
+    return min(dists)
+
+
+assert part1("day_03/ex1.txt") == 159
+assert part1("day_03/ex2.txt") == 135
+print(part1("day_03/input.txt"))
+
