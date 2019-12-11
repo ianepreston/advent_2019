@@ -15,12 +15,12 @@ def read_points(file):
     with open(file, "r") as f:
         x = 0
         y = 0
-        points = []
+        points = set()
         for line in f.readlines():
             x = 0
             for char in line:
                 if char == "#":
-                    points.append(Point(x, y))
+                    points.add(Point(x, y))
                 x += 1
             y += 1
     return points
@@ -73,26 +73,40 @@ class Line:
                 self.point1, point
             )
 
+
 test = Line(Point(3, 4), Point(1, 0))
 assert test.point_on_line(Point(2, 2))
 tp = Point(3, 4)
 test = Line(tp, tp)
-assert not test.point_on_line(Point(2,2))
+assert not test.point_on_line(Point(2, 2))
 assert not test.point_on_line(tp)
+
 
 def observable_points(points):
     point_counter = Counter()
     for source in points:
-        for dest in points:
+        for dest in points.difference(set(source)):
             line = Line(source, dest)
-            if all(not line.point_on_line(point) for point in points if point != source):
+            if all(
+                not line.point_on_line(point)
+                for point in points.difference(set((source, dest)))
+            ):
                 point_counter[source] += 1
     return point_counter
+
 
 def best_asteroid(points):
     point_counter = observable_points(points)
     max_key = max(point_counter, key=lambda k: point_counter[k])
-    return point_counter[max_key], max_key
+    return (
+        point_counter[max_key] - 1,
+        max_key,
+    )  # not totally sure why I need to subtract one
 
-print(best_asteroid(read_points(here / "ex1.txt")))
-# Nope, getting 4 with 1,2 instead of 8 with 3,4
+
+assert best_asteroid(read_points(here / "ex1.txt")) == (8, Point(3, 4))
+assert best_asteroid(read_points(here / "ex2.txt")) == (33, Point(5, 8))
+assert best_asteroid(read_points(here / "ex3.txt")) == (35, Point(1, 2))
+assert best_asteroid(read_points(here / "ex4.txt")) == (41, Point(6, 3))
+assert best_asteroid(read_points(here / "ex5.txt")) == (210, Point(11, 13))
+print(best_asteroid(read_points(here / "input.txt")))
