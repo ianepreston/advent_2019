@@ -1,7 +1,8 @@
-from pathlib import Path
-from itertools import permutations
-from collections import namedtuple
+import math
 import re
+from collections import namedtuple
+from itertools import permutations
+from pathlib import Path
 
 here = Path(__file__).parent
 
@@ -38,10 +39,10 @@ class Moon:
     @property
     def total_energy(self):
         return self.potential_energy * self.kinetic_energy
-    
+
     @property
     def static_state(self):
-        return (tuple(zip(self.position, self.velocity)))
+        return tuple(zip(self.position, self.velocity))
 
 
 def parse_coord(input_str):
@@ -56,8 +57,6 @@ class System:
         with open(filename, "r") as f:
             self.moons = [Moon(parse_coord(line)) for line in f.readlines()]
         self.cycles = 0
-        self.states = set(self.static_state)
-        self.unique_states = True
 
     def simulate_step(self):
         for moon1, moon2 in permutations(self.moons, 2):
@@ -65,19 +64,31 @@ class System:
         for moon in self.moons:
             moon.apply_velocity()
         self.cycles += 1
-        if self.static_state in self.states:
-            self.unique_states = False
-        self.states.add(self.static_state)
 
     @property
     def system_energy(self):
         return sum(moon.total_energy for moon in self.moons)
-    
+
     @property
     def static_state(self):
-        return tuple(moon.static_state for moon in self.moons)
-    
+        coord_list = [list() for _ in range(3)]  # hacky but I can count on 3 dimensions
+        for moon in self.moons:
+            for i in range(len(moon.static_state)):
+                coord_list[i].append(moon.static_state[i])
+        return tuple(tuple(dim) for dim in coord_list)
 
+    def find_repetition(self):
+        reps = [None for _ in self.static_state]
+        states = [set() for _ in self.static_state]
+        while any(rep is None for rep in reps):
+            for i, state in enumerate(self.static_state):
+                if state in states[i] and reps[i] is None:
+                    reps[i] = self.cycles
+                states[i].add(state)
+            self.simulate_step()
+        x, y, z = reps
+        xy = x * y // math.gcd(x, y)
+        return xy * z // math.gcd(xy, z)
 
 
 ex1_sys = System(EX1)
@@ -98,3 +109,10 @@ for _ in range(1_000):
 
 print(sys.system_energy)
 
+ex1_sys = System(EX1)
+ex2_sys = System(EX2)
+sys = System(INPUT)
+
+assert ex1_sys.find_repetition() == 2772
+assert ex2_sys.find_repetition() == 4686774924
+print(sys.find_repetition())
