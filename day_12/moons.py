@@ -41,7 +41,7 @@ class Moon:
     
     @property
     def static_state(self):
-        return (tuple(self.position), tuple(self.velocity))
+        return (tuple(zip(self.position, self.velocity)))
 
 
 def parse_coord(input_str):
@@ -98,22 +98,3 @@ for _ in range(1_000):
 
 print(sys.system_energy)
 
-while ex1_sys.unique_states:
-    ex1_sys.simulate_step()
-
-assert ex1_sys.cycles - 1 == 2772
-
-print("first example passed")
-del ex1_sys
-
-while ex2_sys.unique_states:
-    ex2_sys.simulate_step()
-
-assert ex2_sys.cycles - 1 == 4686774924
-print("second example passed")
-del ex2_sys
-
-while sys.unique_states:
-    sys.simulate_step()
-
-print(sys.cycles - 1)
