@@ -38,6 +38,10 @@ class Moon:
     @property
     def total_energy(self):
         return self.potential_energy * self.kinetic_energy
+    
+    @property
+    def static_state(self):
+        return (tuple(self.position), tuple(self.velocity))
 
 
 def parse_coord(input_str):
@@ -52,6 +56,8 @@ class System:
         with open(filename, "r") as f:
             self.moons = [Moon(parse_coord(line)) for line in f.readlines()]
         self.cycles = 0
+        self.states = set(self.static_state)
+        self.unique_states = True
 
     def simulate_step(self):
         for moon1, moon2 in permutations(self.moons, 2):
@@ -59,10 +65,19 @@ class System:
         for moon in self.moons:
             moon.apply_velocity()
         self.cycles += 1
+        if self.static_state in self.states:
+            self.unique_states = False
+        self.states.add(self.static_state)
 
     @property
     def system_energy(self):
         return sum(moon.total_energy for moon in self.moons)
+    
+    @property
+    def static_state(self):
+        return tuple(moon.static_state for moon in self.moons)
+    
+
 
 
 ex1_sys = System(EX1)
@@ -82,3 +97,23 @@ for _ in range(1_000):
     sys.simulate_step()
 
 print(sys.system_energy)
+
+while ex1_sys.unique_states:
+    ex1_sys.simulate_step()
+
+assert ex1_sys.cycles - 1 == 2772
+
+print("first example passed")
+del ex1_sys
+
+while ex2_sys.unique_states:
+    ex2_sys.simulate_step()
+
+assert ex2_sys.cycles - 1 == 4686774924
+print("second example passed")
+del ex2_sys
+
+while sys.unique_states:
+    sys.simulate_step()
+
+print(sys.cycles - 1)
