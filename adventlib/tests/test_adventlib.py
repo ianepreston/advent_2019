@@ -40,3 +40,16 @@ def test_day2_4():
                     return 100 * noun + verb
     assert result_checker() == 9820
 
+def test_day5_1():
+    inprog = base / "day_05" / "input.txt"
+    compy = IntCode(inprog)
+    compy.receive_input(1)
+    results = compy.run_to_completion()
+    assert results[-1] == 7839346
+
+def test_day5_2():
+    inprog = base / "day_05" / "input.txt"
+    compy = IntCode(inprog)
+    compy.receive_input(5)
+    results = compy.run_to_completion()
+    assert results[-1] == 447803
