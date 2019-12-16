@@ -4,6 +4,7 @@ from pathlib import Path
 here = Path(__file__).parent
 base = here.parent / "adventlib"
 EX = here / "example.txt"
+EX2 = here / "example2.txt"
 IN = here / "input.txt"
 
 
@@ -42,6 +43,14 @@ class SpaceObject:
             orbit_queue.extend(mass.orbited_by)
         return orbit_count
 
+    def path_to_com(self):
+        path_list = list()
+        mass = self.orbits
+        while mass is not None:
+            path_list.append(mass)
+            mass = mass.orbits
+        return path_list
+
 
 def build_solar_system(file):
     solar_dict = dict()
@@ -63,3 +72,32 @@ def part1(file):
 
 assert part1(EX) == 42
 print(part1(IN))
+
+
+def part2(file):
+    com, solar_dict = build_solar_system(file)
+    me = solar_dict["YOU"]
+    santa = solar_dict["SAN"]
+    santa_path = santa.path_to_com()
+    me_path = me.path_to_com()
+    if santa in me_path:
+        return me_path.index(santa) - 1
+    elif me in santa_path:
+        return santa_path.index(me) - 1
+    else:
+        common_intersect = set(santa_path).intersection(set(me_path))
+        greatest_common_intersect = [
+            intersect
+            for intersect in common_intersect
+            if intersect.parent_orbit_count()
+            == max(intersect.parent_orbit_count() for intersect in common_intersect)
+        ]
+        assert len(greatest_common_intersect) == 1
+        common_intersect = greatest_common_intersect[0]
+        me_steps = me_path.index(common_intersect)
+        santa_steps = santa_path.index(common_intersect)
+        return me_steps + santa_steps
+
+
+assert part2(EX2) == 4
+print(part2(IN))
