@@ -1,20 +1,22 @@
 """Op code manager for advent of code"""
 from pathlib import Path
 
+
 class IntCode:
     """Might as well build this right finally"""
+
     def __init__(self, prog):
         if isinstance(prog, str) or isinstance(prog, Path):
             with open(prog, "r") as f:
                 self.input_prog = [int(x) for x in f.readline().rstrip().split(",")]
         else:
             self.input_prog = prog
-        self.work_prog = self.input_prog[:] # make a copy so we can restart if necessary
+        # make a copy so we can restart if necessary
+        self.work_prog = self.input_prog[:]
         self.index = 0
         self.inputs = list()
         self.outputs = list()
 
-    
     @staticmethod
     def parse_instruction(instruction):
         sint = str(instruction).zfill(5)
@@ -23,88 +25,93 @@ class IntCode:
         parm1 = bool(int(sint[2]))
         op = int(sint[-2:])
         return op, parm1, parm2, parm3
-    
+
     def parnum(self, parm, num):
         """Depending on parameter mode return an index or a number"""
         if parm:
             return num
         else:
-            return self.work_prog[num]
-    
+            try:
+                return self.work_prog[num]
+            except IndexError:
+                return None
+
     def execute_op(self):
+        if not self.running:
+            raise Exception("No operations to execute, program has halted")
         op, parm1, parm2, parm3 = IntCode.parse_instruction(self.work_prog[self.index])
-        j = self.parnum(parm1, self.index + 1)
-        k = self.parnum(parm2, self.index + 2)
-        m = self.parnum(parm3, self.index + 3)
+        j, k, m = (
+            self.parnum(parm, self.index + num)
+            for parm, num in zip((parm1, parm2, parm3), range(1, 4))
+        )
         if op == 1:
             self.work_prog[m] = self.work_prog[j] + self.work_prog[k]
             self.index += 4
-            return (True, None)
         elif op == 2:
             self.work_prog[m] = self.work_prog[j] * self.work_prog[k]
             self.index += 4
-            return (True, None)
         elif op == 3:
             self.work_prog[j] = self.inputs.pop(0)
             self.index += 2
-            return (True, None)
         elif op == 4:
             self.outputs.append(self.work_prog[j])
             self.index += 2
-            return (True, self.work_prog[j])
         elif op == 5:
             if self.work_prog[j] != 0:
                 self.index = self.work_prog[k]
             else:
                 self.index += 3
-            return (True, None)
         elif op == 6:
             if self.work_prog[j] == 0:
                 self.index = self.work_prog[k]
             else:
                 self.index += 3
-            return (True, None)
         elif op == 7:
             if self.work_prog[j] < self.work_prog[k]:
                 self.work_prog[m] = 1
             else:
                 self.work_prog[m] = 0
             self.index += 4
-            return (True, None)
         elif op == 8:
             if self.work_prog[j] == self.work_prog[k]:
                 self.work_prog[m] = 1
             else:
                 self.work_prog[m] = 0
             self.index += 4
-        elif self.work_prog[self.index] == 99:
-            return (False, None)
         else:
-            raise ValueError
-    
+            raise ValueError(f"invalid opcode provided: {op}")
+
     def receive_input(self, *args):
         for arg in args:
             self.inputs.append(arg)
-        return True
-    
+        return self
+
     def next_output(self):
-        while self.work_prog[self.index] != 99:
-            passfail, result = self.execute_op()
-            if result is not None:
-                return result
-    
+        output_count = len(self.outputs)
+        while self.running:
+            self.execute_op()
+            if len(self.outputs) > output_count:
+                return self.outputs[-1]
+        return None
+
     def run_to_completion(self):
-        while self.work_prog[self.index] != 99:
+        while self.running:
             self.execute_op()
         return self.outputs
 
+    @property
+    def running(self):
+        return self.work_prog[self.index] != 99
 
 
 def read_program(file):
+    """Deprecated"""
     with open(file, "r") as f:
         return [int(x) for x in f.readline().rstrip().split(",")]
 
+
 def parse_instruction(instruction):
+    """Deprecated"""
     sint = str(instruction).zfill(5)
     parm3 = bool(int(sint[0]))
     parm2 = bool(int(sint[1]))
@@ -114,8 +121,8 @@ def parse_instruction(instruction):
 
 
 def opcoder(in_list, args):
-    """Pretend you're a very simple computer"""
-    work_list = in_list[:] # don't modify your program
+    """Deprecated"""
+    work_list = in_list[:]  # don't modify your program
     i = 0
     results = list()
 
