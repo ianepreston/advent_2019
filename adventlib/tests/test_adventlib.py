@@ -11,14 +11,14 @@ def test_day2_1():
     inprog = [1,0,0,0,99]
     compy = IntCode(inprog)
     compy.run_to_completion()
-    assert compy.work_prog == [2,0,0,0,99]
+    assert list(compy.work_prog) == [2,0,0,0,99]
 
 
 def test_day2_2():
     inprog = [2,3,0,3,99]
     compy = IntCode(inprog)
     compy.run_to_completion()
-    assert compy.work_prog == [2,3,0,6,99]
+    assert list(compy.work_prog) == [2,3,0,6,99]
 
 def test_day2_3():
     inprog = base / "day_02" / "input.txt"

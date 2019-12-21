@@ -13,12 +13,12 @@ class IntCode:
                     [int(x) for x in f.readline().rstrip().split(",")], dtype="int64"
                 )
         else:
-            self.input_prog = prog
+            self.input_prog = np.array(prog, dtype="int64")
         # make a copy so we can restart if necessary
         self.work_prog = self.input_prog.copy()
         self.index = 0
-        self.inputs = list()
-        self.outputs = list()
+        self.inputs = np.array([], dtype="int64") 
+        self.outputs = np.array([], dtype="int64")
     
     def __getitem__(self, key):
         if key < 0:
@@ -74,10 +74,11 @@ class IntCode:
             self[m] = self[j] * self[k]
             self.index += 4
         elif op == 3:
-            self[j] = self.inputs.pop(0)
+            self[j] = self.inputs[0]
+            self.inputs = self.inputs[1:]
             self.index += 2
         elif op == 4:
-            self.outputs.append(self[j])
+            self.outputs = np.append(self.outputs, self[j])
             self.index += 2
         elif op == 5:
             if self[j] != 0:
@@ -105,8 +106,7 @@ class IntCode:
             raise ValueError(f"invalid opcode provided: {op}")
 
     def receive_input(self, *args):
-        for arg in args:
-            self.inputs.append(arg)
+        self.inputs = np.append(self.inputs, args)
         return self
 
     def next_output(self):
