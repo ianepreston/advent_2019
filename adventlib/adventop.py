@@ -1,5 +1,6 @@
 """Op code manager for advent of code"""
 from pathlib import Path
+import numpy as np
 
 
 class IntCode:
@@ -8,14 +9,36 @@ class IntCode:
     def __init__(self, prog):
         if isinstance(prog, str) or isinstance(prog, Path):
             with open(prog, "r") as f:
-                self.input_prog = [int(x) for x in f.readline().rstrip().split(",")]
+                self.input_prog = np.array(
+                    [int(x) for x in f.readline().rstrip().split(",")], dtype="int64"
+                )
         else:
             self.input_prog = prog
         # make a copy so we can restart if necessary
-        self.work_prog = self.input_prog[:]
+        self.work_prog = self.input_prog.copy()
         self.index = 0
         self.inputs = list()
         self.outputs = list()
+    
+    def __getitem__(self, key):
+        if key < 0:
+            raise IndexError("negative indexes are not supported")
+        try:
+            val = self.work_prog[key]
+        except IndexError:
+            self.work_prog.resize(key + 1, refcheck=False)
+            val = self.work_prog[key]
+        return val
+    
+    def __setitem__(self, key, value):
+        if key < 0:
+            raise IndexError("negative indexes are not supported")
+        try:
+            self.work_prog[key] = value
+        except IndexError:
+            self.work_prog.resize(key + 1, refcheck=False)
+            self.work_prog[key] = value
+        return value
 
     @staticmethod
     def parse_instruction(instruction):
@@ -32,51 +55,51 @@ class IntCode:
             return num
         else:
             try:
-                return self.work_prog[num]
+                return self[num]
             except IndexError:
                 return None
 
     def execute_op(self):
         if not self.running:
             raise Exception("No operations to execute, program has halted")
-        op, parm1, parm2, parm3 = IntCode.parse_instruction(self.work_prog[self.index])
+        op, parm1, parm2, parm3 = IntCode.parse_instruction(self[self.index])
         j, k, m = (
             self.parnum(parm, self.index + num)
             for parm, num in zip((parm1, parm2, parm3), range(1, 4))
         )
         if op == 1:
-            self.work_prog[m] = self.work_prog[j] + self.work_prog[k]
+            self[m] = self[j] + self[k]
             self.index += 4
         elif op == 2:
-            self.work_prog[m] = self.work_prog[j] * self.work_prog[k]
+            self[m] = self[j] * self[k]
             self.index += 4
         elif op == 3:
-            self.work_prog[j] = self.inputs.pop(0)
+            self[j] = self.inputs.pop(0)
             self.index += 2
         elif op == 4:
-            self.outputs.append(self.work_prog[j])
+            self.outputs.append(self[j])
             self.index += 2
         elif op == 5:
-            if self.work_prog[j] != 0:
-                self.index = self.work_prog[k]
+            if self[j] != 0:
+                self.index = self[k]
             else:
                 self.index += 3
         elif op == 6:
-            if self.work_prog[j] == 0:
-                self.index = self.work_prog[k]
+            if self[j] == 0:
+                self.index = self[k]
             else:
                 self.index += 3
         elif op == 7:
-            if self.work_prog[j] < self.work_prog[k]:
-                self.work_prog[m] = 1
+            if self[j] < self[k]:
+                self[m] = 1
             else:
-                self.work_prog[m] = 0
+                self[m] = 0
             self.index += 4
         elif op == 8:
-            if self.work_prog[j] == self.work_prog[k]:
-                self.work_prog[m] = 1
+            if self[j] == self[k]:
+                self[m] = 1
             else:
-                self.work_prog[m] = 0
+                self[m] = 0
             self.index += 4
         else:
             raise ValueError(f"invalid opcode provided: {op}")
@@ -101,7 +124,7 @@ class IntCode:
 
     @property
     def running(self):
-        return self.work_prog[self.index] != 99
+        return self[self.index] != 99
 
 
 def read_program(file):
