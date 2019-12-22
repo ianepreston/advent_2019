@@ -40,7 +40,7 @@ class IntCode:
             self.work_prog[key] = value
         return value
 
-    def parnum(self, parm, num, op):
+    def parnum(self, parm, num):
         """Depending on parameter mode return an index or a number"""
         if parm:
             return num
@@ -62,8 +62,15 @@ class IntCode:
         for _ in range(3):
             parameter_modes.append(instruction % 10)
             instruction = instruction // 10
-        parameters = [self.parnum(parm, self.index + num, op) for num, parm in enumerate(parameter_modes, 1)]
-        return op, *parameters 
+        if op in (1, 2, 7, 8) and parameter_modes[2] == 1:
+            parameter_modes[2] = 0
+        elif op == 3 and parameter_modes[0] == 1:
+            parameter_modes[0] = 0
+        parameters = [
+            self.parnum(parm, self.index + num)
+            for num, parm in enumerate(parameter_modes, 1)
+        ]
+        return [op] + parameters
 
     def execute_op(self):
         if not self.running:
@@ -199,4 +206,3 @@ def opcoder(in_list, args):
         else:
             raise (ValueError)
     return results
-
