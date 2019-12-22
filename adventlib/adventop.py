@@ -17,9 +17,9 @@ class IntCode:
         # make a copy so we can restart if necessary
         self.work_prog = self.input_prog.copy()
         self.index = 0
-        self.inputs = np.array([], dtype="int64") 
+        self.inputs = np.array([], dtype="int64")
         self.outputs = np.array([], dtype="int64")
-    
+
     def __getitem__(self, key):
         if key < 0:
             raise IndexError("negative indexes are not supported")
@@ -29,7 +29,7 @@ class IntCode:
             self.work_prog.resize(key + 1, refcheck=False)
             val = self.work_prog[key]
         return val
-    
+
     def __setitem__(self, key, value):
         if key < 0:
             raise IndexError("negative indexes are not supported")
@@ -45,11 +45,8 @@ class IntCode:
         if parm:
             return num
         else:
-            try:
-                return self[num]
-            except IndexError:
-                return None
-        
+            return self[num]
+
     def parse_op(self, instruction):
         op = instruction % 100
         instruction = instruction // 100
