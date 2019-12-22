@@ -69,41 +69,40 @@ class IntCode:
         if not self.running:
             raise Exception("No operations to execute, program has halted")
         op, parm1, parm2, parm3 = self.parse_op(self[self.index])
-        j, k, m = parm1, parm2, parm3
         if op == 1:
-            self[m] = self[j] + self[k]
+            self[parm3] = self[parm1] + self[parm2]
             self.index += 4
         elif op == 2:
-            self[m] = self[j] * self[k]
+            self[parm3] = self[parm1] * self[parm2]
             self.index += 4
         elif op == 3:
-            self[j] = self.inputs[0]
+            self[parm1] = self.inputs[0]
             self.inputs = self.inputs[1:]
             self.index += 2
         elif op == 4:
-            self.outputs = np.append(self.outputs, self[j])
+            self.outputs = np.append(self.outputs, self[parm1])
             self.index += 2
         elif op == 5:
-            if self[j] != 0:
-                self.index = self[k]
+            if self[parm1] != 0:
+                self.index = self[parm2]
             else:
                 self.index += 3
         elif op == 6:
-            if self[j] == 0:
-                self.index = self[k]
+            if self[parm1] == 0:
+                self.index = self[parm2]
             else:
                 self.index += 3
         elif op == 7:
-            if self[j] < self[k]:
-                self[m] = 1
+            if self[parm1] < self[parm2]:
+                self[parm3] = 1
             else:
-                self[m] = 0
+                self[parm3] = 0
             self.index += 4
         elif op == 8:
-            if self[j] == self[k]:
-                self[m] = 1
+            if self[parm1] == self[parm2]:
+                self[parm3] = 1
             else:
-                self[m] = 0
+                self[parm3] = 0
             self.index += 4
         else:
             raise ValueError(f"invalid opcode provided: {op}")
