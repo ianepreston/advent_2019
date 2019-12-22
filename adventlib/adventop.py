@@ -48,6 +48,8 @@ class IntCode:
         elif parm == 1:
             return num
         elif parm == 2:
+            return self.relative_base + num
+        elif parm == 22:
             return self[self.relative_base + num]
         else:
             raise ValueError(f"invalid parameter: {parm}")
@@ -67,10 +69,17 @@ class IntCode:
         for _ in range(3):
             parameter_modes.append(instruction % 10)
             instruction = instruction // 10
-        if op in (1, 2, 7, 8) and parameter_modes[2] == 1:
-            parameter_modes[2] = 0
-        elif op == 3 and parameter_modes[0] == 1:
-            parameter_modes[0] = 0
+        if op in (1, 2, 7, 8):
+            if parameter_modes[2] == 1:
+                parameter_modes[2] = 0
+            elif parameter_modes[2] == 2:
+                parameter_modes[2] =22
+
+        elif op == 3:
+            if parameter_modes[0] == 1:
+                parameter_modes[0] = 0
+            elif parameter_modes[0] == 2:
+                parameter_modes[0] = 22
         parameters = [
             self.parnum(parm, self.index + num)
             for num, parm in enumerate(parameter_modes, 1)
