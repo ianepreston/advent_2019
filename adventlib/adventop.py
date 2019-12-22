@@ -40,15 +40,6 @@ class IntCode:
             self.work_prog[key] = value
         return value
 
-    @staticmethod
-    def parse_instruction(instruction):
-        sint = str(instruction).zfill(5)
-        parm3 = bool(int(sint[0]))
-        parm2 = bool(int(sint[1]))
-        parm1 = bool(int(sint[2]))
-        op = int(sint[-2:])
-        return op, parm1, parm2, parm3
-
     def parnum(self, parm, num):
         """Depending on parameter mode return an index or a number"""
         if parm:
@@ -58,11 +49,21 @@ class IntCode:
                 return self[num]
             except IndexError:
                 return None
+        
+    def parse_op(self, instruction):
+        op = instruction % 100
+        instruction = instruction // 100
+        parmode_1 = instruction % 10
+        instruction = instruction // 10
+        parmode_2 = instruction % 10
+        instruction = instruction // 10
+        parmode_3 = instruction % 10
+        return op, parmode_1, parmode_2, parmode_3
 
     def execute_op(self):
         if not self.running:
             raise Exception("No operations to execute, program has halted")
-        op, parm1, parm2, parm3 = IntCode.parse_instruction(self[self.index])
+        op, parm1, parm2, parm3 = self.parse_op(self[self.index])
         j, k, m = (
             self.parnum(parm, self.index + num)
             for parm, num in zip((parm1, parm2, parm3), range(1, 4))
