@@ -17,6 +17,7 @@ class IntCode:
         # make a copy so we can restart if necessary
         self.work_prog = self.input_prog.copy()
         self.index = 0
+        self.relative_base = 0
         self.inputs = np.array([], dtype="int64")
         self.outputs = np.array([], dtype="int64")
 
@@ -42,10 +43,14 @@ class IntCode:
 
     def parnum(self, parm, num):
         """Depending on parameter mode return an index or a number"""
-        if parm:
-            return num
-        else:
+        if parm == 0:
             return self[num]
+        elif parm == 1:
+            return num
+        elif parm == 2:
+            return self[self.relative_base + num]
+        else:
+            raise ValueError(f"invalid parameter: {parm}")
 
     def parse_op(self, instruction):
         """
@@ -111,6 +116,9 @@ class IntCode:
             else:
                 self[parm3] = 0
             self.index += 4
+        elif op == 9:
+            self.relative_base += self[parm1]
+            self.index += 2
         else:
             raise ValueError(f"invalid opcode provided: {op}")
 
