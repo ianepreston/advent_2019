@@ -40,7 +40,7 @@ class IntCode:
             self.work_prog[key] = value
         return value
 
-    def parnum(self, parm, num):
+    def parnum(self, parm, num, op):
         """Depending on parameter mode return an index or a number"""
         if parm:
             return num
@@ -48,23 +48,28 @@ class IntCode:
             return self[num]
 
     def parse_op(self, instruction):
+        """
+        First two digits are the opcode
+        next are the parameter modes for the remaining parameters
+        parameter mode 0 is position mode, return index for that parameter
+        parameter mode 1 is immediate mode, return that parameter
+        parameter mode 2 is relative mode, return the index in the relative offset + that parameter
+        parameters that an instruction writes to will never be in immediate mode - I guess we default back to position?
+        """
         op = instruction % 100
         instruction = instruction // 100
-        parmode_1 = instruction % 10
-        instruction = instruction // 10
-        parmode_2 = instruction % 10
-        instruction = instruction // 10
-        parmode_3 = instruction % 10
-        return op, parmode_1, parmode_2, parmode_3
+        parameter_modes = list()
+        for _ in range(3):
+            parameter_modes.append(instruction % 10)
+            instruction = instruction // 10
+        parameters = [self.parnum(parm, self.index + num, op) for num, parm in enumerate(parameter_modes, 1)]
+        return op, *parameters 
 
     def execute_op(self):
         if not self.running:
             raise Exception("No operations to execute, program has halted")
         op, parm1, parm2, parm3 = self.parse_op(self[self.index])
-        j, k, m = (
-            self.parnum(parm, self.index + num)
-            for parm, num in zip((parm1, parm2, parm3), range(1, 4))
-        )
+        j, k, m = parm1, parm2, parm3
         if op == 1:
             self[m] = self[j] + self[k]
             self.index += 4
