@@ -49,8 +49,8 @@ class IntCode:
             return num
         elif parm == 2:
             return self.relative_base + self[num]
-        elif parm == 22:
-            return self[self.relative_base + num]
+        # elif parm == 22:
+            # return self[self.relative_base + self[num]]
         else:
             raise ValueError(f"invalid parameter: {parm}")
 
