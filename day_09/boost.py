@@ -21,3 +21,7 @@ assert int_ex3.run_to_completion()[0] == EX3[1]
 boost_int = IntCode(IN)
 boost_int.receive_input(1)
 print(boost_int.run_to_completion())
+
+boost_int_part2 = IntCode(IN)
+boost_int_part2.receive_input(2)
+print(boost_int_part2.run_to_completion())
