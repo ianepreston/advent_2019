@@ -11,8 +11,7 @@ EX3 = [104,1125899906842624,99]
 IN = here / "input.txt"
 
 int_ex1 = IntCode(EX1)
-print(int_ex1.run_to_completion())
-# assert list(int_ex1.run_to_completion()) == EX1
+assert list(int_ex1.run_to_completion()) == EX1
 
 int_ex2 = IntCode(EX2)
 assert int_ex2.run_to_completion()[0] == 1219070632396864 
