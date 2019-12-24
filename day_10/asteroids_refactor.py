@@ -39,11 +39,19 @@ def calc_slope(source, destination):
     x, y = relative_position(source, destination)
     try:
         rise_run = Fraction(y, x)
-        rise = Fraction.numerator
-        run = Fraction.denominator
+        rise = rise_run.numerator
+        run = rise_run.denominator
     except ZeroDivisionError:
         rise = 1
         run = 0
+    if destination.y < source.y:
+        rise = -abs(rise)
+    else:
+        rise = abs(rise)
+    if destination.x < source.x:
+        run = -abs(run)
+    else:
+        run = abs(run)
     return Slope(rise, run)
 
 
@@ -55,23 +63,23 @@ class AsteroidField:
         self.min_y = min(point.y for point in self.field)
         self.max_y = max(point.y for point in self.field)
 
-    def in_field(self, point):
+    def in_area(self, point):
         """Check if a point is within the asteroid field"""
         return (self.min_x <= point.x <= self.max_x) and (
             self.min_y <= point.y <= self.max_y
         )
-    
+
     def max_sweep(self, point):
         """furthest distance from point to edge of field
         is the biggest fraction for sweepint possible
         """
         return max(
-            point.x - self.min_x, 
+            point.x - self.min_x,
             self.max_x - point.max_x,
             point.y - self.min_y,
-            self.max_y - point.y
+            self.max_y - point.y,
         )
-    
+
     def circle_edges(self, point):
         # start directly above the point
         edge = Point(point.x, self.min_y)
@@ -96,13 +104,48 @@ class AsteroidField:
         while edge.x < point.x - 1:
             edge = Point(edge.x + 1, edge.y)
             yield edge
-        
-        
 
-field = AsteroidField( here / "ex1.txt")
-# print(field.field)
-point = Point(3, 4)
-for edge in field.circle_edges(point):
-    print(edge)
+    def sweep(self, point):
+        # maybe I can still do this as a generator?
+        slopes = list()
+        edges = [edge for edge in self.circle_edges(point)]
+        for edge in edges:
+            if point == edge:
+                pass
+            slope = calc_slope(point, edge)
+            if slope not in slopes:
+                slopes.append(slope)
+        for slope in slopes:
+            # print(f"EDGE: {edge}. SLOPE: {slope}")
+            rise = slope.rise
+            run = slope.run
+            target = Point(point.x + run, point.y + rise)
+            contact = False
+            while self.in_area(target) and not contact:
+                # print(f"EDGE: {edge}, TARGET: {target}")
+                if target in self.field:
+                    yield target
+                    contact = True
+                    # pass
+                target = Point(target.x + run, target.y + rise)
 
+    def observable_points(self):
+        point_counter = Counter()
+        for point in self.field:
+            for _ in self.sweep(point):
+                point_counter[point] += 1
+        return point_counter
+
+    def best_asteroid(self):
+        counts = self.observable_points()
+        max_point = max(counts, key=lambda k: counts[k])
+        return counts[max_point], max_point
+
+
+assert AsteroidField(here / "ex1.txt").best_asteroid() == (8, Point(3, 4))
+assert AsteroidField(here / "ex2.txt").best_asteroid() == (33, Point(5, 8))
+assert AsteroidField(here / "ex3.txt").best_asteroid() == (35, Point(1, 2))
+assert AsteroidField(here / "ex4.txt").best_asteroid() == (41, Point(6, 3))
+assert AsteroidField(here / "ex5.txt").best_asteroid() == (210, Point(11, 13))
+assert AsteroidField(here / "input.txt").best_asteroid() == (256, Point(29, 28))
 
