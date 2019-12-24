@@ -1,5 +1,6 @@
 from pathlib import Path
 from collections import Counter, namedtuple
+from math import atan2, dist, pi
 from fractions import Fraction
 
 Point = namedtuple("Point", ["x", "y"])
@@ -30,29 +31,13 @@ def relative_position(source, destination):
     return Point(destination.x - source.x, destination.y - source.y)
 
 
-def relative_to_absolute(source, offset):
-    """Return the actual coordinate location, reverse relative position"""
-    return Point(source.x + offset.x, source.y + offset.y)
-
-
-def calc_slope(source, destination):
+def calc_radians(source, destination):
+    """Not quite radians, but close enough"""
     x, y = relative_position(source, destination)
-    try:
-        rise_run = Fraction(y, x)
-        rise = rise_run.numerator
-        run = rise_run.denominator
-    except ZeroDivisionError:
-        rise = 1
-        run = 0
-    if destination.y < source.y:
-        rise = -abs(rise)
-    else:
-        rise = abs(rise)
-    if destination.x < source.x:
-        run = -abs(run)
-    else:
-        run = abs(run)
-    return Slope(rise, run)
+    rad = atan2(y, x)
+    if y > 0 and x < 0:
+        rad = (2 * pi) - rad
+    return rad
 
 
 class AsteroidField:
@@ -62,10 +47,12 @@ class AsteroidField:
         self.max_x = max(point.x for point in self.field)
         self.min_y = min(point.y for point in self.field)
         self.max_y = max(point.y for point in self.field)
-    
+
     def count_slopes(self, point):
-        return len(set(calc_slope(point, dest) for dest in self.field if dest != point))
-    
+        return len(
+            set(calc_radians(point, dest) for dest in self.field if dest != point)
+        )
+
     def best(self):
         result = {point: self.count_slopes(point) for point in self.field}
         max_point = max(result, key=lambda k: result[k])
