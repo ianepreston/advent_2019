@@ -62,6 +62,15 @@ class AsteroidField:
         self.max_x = max(point.x for point in self.field)
         self.min_y = min(point.y for point in self.field)
         self.max_y = max(point.y for point in self.field)
+    
+    def count_slopes(self, point):
+        return len(set(calc_slope(point, dest) for dest in self.field if dest != point))
+    
+    def best(self):
+        result = {point: self.count_slopes(point) for point in self.field}
+        max_point = max(result, key=lambda k: result[k])
+        return result[max_point], max_point
+
 
     def in_area(self, point):
         """Check if a point is within the asteroid field"""
@@ -105,6 +114,8 @@ class AsteroidField:
             edge = Point(edge.x + 1, edge.y)
             yield edge
 
+
+
     def sweep(self, point):
         # maybe I can still do this as a generator?
         slopes = list()
@@ -142,10 +153,10 @@ class AsteroidField:
         return counts[max_point], max_point
 
 
-assert AsteroidField(here / "ex1.txt").best_asteroid() == (8, Point(3, 4))
-assert AsteroidField(here / "ex2.txt").best_asteroid() == (33, Point(5, 8))
-assert AsteroidField(here / "ex3.txt").best_asteroid() == (35, Point(1, 2))
-assert AsteroidField(here / "ex4.txt").best_asteroid() == (41, Point(6, 3))
-assert AsteroidField(here / "ex5.txt").best_asteroid() == (210, Point(11, 13))
-assert AsteroidField(here / "input.txt").best_asteroid() == (256, Point(29, 28))
+assert AsteroidField(here / "ex1.txt").best() == (8, Point(3, 4))
+assert AsteroidField(here / "ex2.txt").best() == (33, Point(5, 8))
+assert AsteroidField(here / "ex3.txt").best() == (35, Point(1, 2))
+assert AsteroidField(here / "ex4.txt").best() == (41, Point(6, 3))
+assert AsteroidField(here / "ex5.txt").best() == (210, Point(11, 13))
+assert AsteroidField(here / "input.txt").best() == (256, Point(29, 28))
 
