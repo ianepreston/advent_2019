@@ -136,18 +136,20 @@ class IntCode:
         return self
 
     def next_output(self):
-        output_count = len(self.outputs)
-        while self.running:
+        op = 0
+        while op != 4 and self.running:
+            op, *_ = self.parse_op(self[self.index])
             self.execute_op()
-            if len(self.outputs) > output_count:
-                return self.outputs[-1]
-        return None
+        if op == 4:
+            return self.outputs[-1]
+        else:
+            return None
     
     def run_to_next_input(self):
-        op, *_ = self.parse_op(self[self.index])
-        while op != 3:
-            self.execute_op
+        op = 0
+        while op != 3 and self.running:
             op, *_ = self.parse_op(self[self.index])
+            self.execute_op
 
     def run_to_completion(self):
         while self.running:
