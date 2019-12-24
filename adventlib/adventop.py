@@ -150,6 +150,13 @@ class IntCode:
         while op != 3 and self.running:
             op, *_ = self.parse_op(self[self.index])
             self.execute_op
+    
+    def run_to_next_io(self):
+        op = 0
+        while op != 3 and op != 4 and self.running:
+            op, *_ = self.parse_op(self[self.index])
+            self.execute_op
+        return op
 
     def run_to_completion(self):
         while self.running:
