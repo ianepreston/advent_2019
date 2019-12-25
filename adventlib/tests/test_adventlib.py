@@ -182,3 +182,8 @@ def test_day_9_10():
     int_ex = IntCode(EX)
     int_ex.receive_input(123)
     assert int_ex.run_to_completion()[0] == 123
+
+def test_day_13():
+    day13_folder = libpath.parent / "day_13"
+    sys.path.append(str(day13_folder))
+    import pong

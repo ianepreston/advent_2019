@@ -149,13 +149,13 @@ class IntCode:
         op = 0
         while op != 3 and self.running:
             op, *_ = self.parse_op(self[self.index])
-            self.execute_op
+            self.execute_op()
     
     def run_to_next_io(self):
-        op = 0
+        op, *_ = self.parse_op(self[self.index])
         while op != 3 and op != 4 and self.running:
+            self.execute_op()
             op, *_ = self.parse_op(self[self.index])
-            self.execute_op
         return op
 
     def run_to_completion(self):
