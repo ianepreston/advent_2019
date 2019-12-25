@@ -1,6 +1,6 @@
 from pathlib import Path
 import re
-from collections import namedtuple, Counter
+from collections import OrderedDict, Counter
 
 here = Path(__file__).parent.resolve()
 
@@ -13,7 +13,9 @@ IN = here / "input.txt"
 
 ALL_IN = [EX1, EX2, EX3, EX4, EX5, IN]
 
-Precursor = namedtuple("Precursor", ["compound", "number"])
+
+def ceildiv(a, b):
+    return -(-a // b)
 
 
 def parse_line(input_str):
@@ -32,39 +34,37 @@ class Compound:
     def __init__(self, name, outnum=None):
         self.name = name
         self.outnum = outnum
+        # list of tuples format (compound, number required)
         self.precursors = list()
 
     def __repr__(self):
         return self.name
 
     def reaction(self):
-        print("refactoring this")
-        return None
         ore_count = 0
         compound_count = Counter()
-        compound_queue = [self]
+        compound_queue = OrderedDict()
+        compound_queue[self] = 1
         while compound_queue:
-            current_compound = compound_queue[-1]
-            requirements = {
-                precursor.compound: precursor.number
-                for precursor in current_compound.precursors
-            }
-            if len(requirements) == 1 and list(requirements.keys())[0].name == "ORE":
-                ore_count += list(requirements.values())[0]
-                compound_count[current_compound] = current_compound.outnum
-                compound_queue.pop()
+            compound, numreq = compound_queue.popitem()
+            if numreq <= compound_count[compound]:
+                compound_count[compound] -= numreq
             else:
-                missing_reqs = [
-                    precursor.compound
-                    for precursor in current_compound.precursors
-                    if precursor.number > compound_count[precursor.compound]
-                ]
-                if missing_reqs:
-                    compound_queue.extend(missing_reqs)
+                precursors = compound.precursors
+                if len(precursors) == 1 and precursors[0][0].name == "ORE":
+                    ore, orenum = precursors[0]
+                    compout = compound.outnum
+                    reactions = ceildiv(numreq, compout)
+                    ore_count += orenum * reactions
+                    compound_count[compound] += (reactions * compout) - (
+                        reactions * numreq
+                    )
                 else:
-                    for precursor in current_compound.precursors:
-                        compound_count[precursor.compound] -= precursor.number
-                    compound_queue.pop()
+                    for compound, required in precursors:
+                        if compound in compound_queue.keys():
+                            compound_queue[compound] += required
+                        else:
+                            compound_queue[compound] = required
         return ore_count
 
 
@@ -116,15 +116,15 @@ for file in ALL_IN:
     validate_compounds(file)
 
 
-# def part1(file):
-#     compounds = parse_compounds(file)
-#     fuel = compounds["FUEL"]
-#     return fuel.reaction()
+def part1(file):
+    compounds = parse_compounds(file)
+    fuel = compounds["FUEL"]
+    return fuel.reaction()
 
 
-# assert part1(EX1) == 31
-# assert part1(EX2) == 165
-# assert part1(EX3) == 13312
-# assert part1(EX4) == 180697
-# assert part1(EX5) == 2210736
-# print(part1(IN))
+assert part1(EX1) == 31
+assert part1(EX2) == 165
+assert part1(EX3) == 13312
+assert part1(EX4) == 180697
+assert part1(EX5) == 2210736
+print(part1(IN))
