@@ -38,10 +38,10 @@ class Compound:
     def __repr__(self):
         return self.name
 
-    def reaction(self):
+    def reaction(self, total_out=1):
         ore_count = 0
         compound_count = Counter()
-        compound_count[self] += 1
+        compound_count[self] += total_out
         while any(val > 0 for val in compound_count.values()):
             compound = next(
                 iter(
@@ -117,9 +117,36 @@ def part1(file):
     return fuel.reaction()
 
 
+def part2(file):
+    so_much_ore = 1_000_000_000_000
+    compounds = parse_compounds(file)
+    fuel = compounds["FUEL"]
+    # even if there's no savings I have to be able to make this much
+    min_fuel = so_much_ore // fuel.reaction(total_out=1)
+    # I don't know, this seems big enough
+    max_fuel = min_fuel * 5
+    mid_fuel = min_fuel + ((max_fuel - min_fuel) // 2)
+    while mid_fuel != max_fuel and mid_fuel != min_fuel:
+        if fuel.reaction(total_out=mid_fuel) > so_much_ore:
+            max_fuel = mid_fuel
+        else:
+            min_fuel = mid_fuel
+        mid_fuel = min_fuel + ((max_fuel - min_fuel) // 2)
+    assert fuel.reaction(total_out=mid_fuel) <= so_much_ore
+    if fuel.reaction(total_out=max_fuel) <= so_much_ore:
+        return max_fuel
+    else:
+        return mid_fuel
+
+
 assert part1(EX1) == 31
 assert part1(EX2) == 165
-assert part1(EX3) == 13312
-assert part1(EX4) == 180697
-assert part1(EX5) == 2210736
-assert part1(IN) == 2556890
+assert part1(EX3) == 13_312
+assert part1(EX4) == 180_697
+assert part1(EX5) == 2_210_736
+assert part1(IN) == 2_556_890
+
+assert part2(EX3) == 82892753
+assert part2(EX4) == 5586022
+assert part2(EX5) == 460664
+print(part2(IN))
