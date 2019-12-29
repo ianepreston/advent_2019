@@ -34,3 +34,18 @@ assert part1(EX1) == "24176176"
 assert part1(EX2) == "73745418"
 assert part1(EX3) == "52432133"
 print(part1(IN))
+
+def part2(numlist):
+    offset = int("".join(str(x) for x in numlist[:7]))
+    numlist = numlist * 10_000
+    for _ in range(100):
+        position = len(numlist) - 1
+        total = 0
+        while position >= offset:
+            total += numlist[position]
+            numlist[position] = abs(total) % 10
+            position -= 1
+    result = "".join(str(x) for x in numlist[offset:offset + 8])
+    return result
+
+print(part2(IN))
